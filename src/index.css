@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --color-brand-green: #2E7D32;
+  --color-brand-green-light: #4CAF50;
+  --color-brand-green-dark: #1B5E20;
+  --color-brand-blue: #1565C0;
+  --color-brand-blue-light: #1E88E5;
+  --color-brand-blue-dark: #0D47A1;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

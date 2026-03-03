@@ -1,0 +1,608 @@
+import { useState } from 'react';
+import {
+    Leaf,
+    ArrowRight,
+    ArrowLeft,
+    ClipboardList,
+    Cpu,
+    Utensils,
+    ChevronRight,
+    RotateCcw,
+    Activity,
+    Target,
+    Flame,
+    Dumbbell,
+    Scale,
+    Heart,
+    Apple,
+    Beef,
+    Droplets,
+    Zap,
+    Sun,
+    Moon,
+    Coffee,
+    Cookie,
+    Check,
+} from 'lucide-react';
+
+/* ──────────────────────────────────────────────
+   MEAL PLAN DATA
+   ────────────────────────────────────────────── */
+
+const MEAL_PLANS = {
+    none: [
+        { day: 'Monday', breakfast: 'Greek yogurt parfait with granola & berries', lunch: 'Grilled chicken Caesar salad with whole-grain croutons', dinner: 'Pan-seared salmon with roasted sweet potatoes & broccoli', snack: 'Apple slices with almond butter' },
+        { day: 'Tuesday', breakfast: 'Scrambled eggs with whole-wheat toast & avocado', lunch: 'Turkey & avocado wrap with side salad', dinner: 'Lean beef stir-fry with brown rice & mixed vegetables', snack: 'Trail mix with nuts & dried fruit' },
+        { day: 'Wednesday', breakfast: 'Overnight oats with chia seeds, banana & honey', lunch: 'Grilled shrimp bowl with quinoa, black beans & corn', dinner: 'Herb-crusted chicken breast with mashed sweet potatoes & green beans', snack: 'Cottage cheese with pineapple' },
+        { day: 'Thursday', breakfast: 'Protein smoothie with spinach, banana & peanut butter', lunch: 'Mediterranean tuna salad with olives & feta', dinner: 'Pork tenderloin with roasted Brussels sprouts & wild rice', snack: 'Hard-boiled eggs with cherry tomatoes' },
+        { day: 'Friday', breakfast: 'Whole-grain pancakes with fresh berries & maple syrup', lunch: 'Chicken & vegetable soup with whole-wheat bread', dinner: 'Baked cod with lemon-herb couscous & asparagus', snack: 'Protein bar & a banana' },
+        { day: 'Saturday', breakfast: 'Veggie omelet with mushrooms, peppers & cheese', lunch: 'BBQ chicken salad with corn, black beans & ranch', dinner: 'Grilled steak with baked potato & steamed broccoli', snack: 'Greek yogurt with granola' },
+        { day: 'Sunday', breakfast: 'Avocado toast with poached eggs & everything seasoning', lunch: 'Asian chicken lettuce wraps with peanut sauce', dinner: 'Slow-cooker chicken tikka masala with basmati rice', snack: 'Mixed berries with dark chocolate squares' },
+    ],
+    vegetarian: [
+        { day: 'Monday', breakfast: 'Greek yogurt parfait with granola & mixed berries', lunch: 'Caprese panini with fresh mozzarella, tomato & basil', dinner: 'Vegetable stir-fry with tofu & brown rice', snack: 'Hummus with carrot & celery sticks' },
+        { day: 'Tuesday', breakfast: 'Spinach & cheese omelet with whole-wheat toast', lunch: 'Black bean & corn quesadilla with Greek yogurt dip', dinner: 'Eggplant Parmesan with whole-wheat pasta & side salad', snack: 'Apple slices with peanut butter' },
+        { day: 'Wednesday', breakfast: 'Overnight oats with almond milk, chia seeds & banana', lunch: 'Mediterranean falafel wrap with tahini sauce', dinner: 'Mushroom risotto with Parmesan & roasted asparagus', snack: 'Mixed nuts & dried cranberries' },
+        { day: 'Thursday', breakfast: 'Smoothie bowl with açaí, granola & fresh fruit', lunch: 'Spinach & ricotta stuffed shells with marinara', dinner: 'Vegetable curry with chickpeas & jasmine rice', snack: 'Cottage cheese with sliced peaches' },
+        { day: 'Friday', breakfast: 'Whole-grain waffles with strawberries & whipped cream', lunch: 'Greek salad with quinoa, olives & feta cheese', dinner: 'Stuffed bell peppers with rice, beans & cheese', snack: 'Protein smoothie with berries' },
+        { day: 'Saturday', breakfast: 'Banana pancakes with maple syrup & walnuts', lunch: 'Grilled halloumi wrap with roasted vegetables', dinner: 'Pasta primavera with garlic bread & Caesar salad', snack: 'Energy balls with oats & dark chocolate' },
+        { day: 'Sunday', breakfast: 'Avocado toast with cherry tomatoes & microgreens', lunch: 'Lentil soup with crusty bread & side salad', dinner: 'Homemade margherita pizza with arugula salad', snack: 'Greek yogurt with honey & walnuts' },
+    ],
+    vegan: [
+        { day: 'Monday', breakfast: 'Açaí smoothie bowl with coconut, granola & berries', lunch: 'Roasted vegetable & hummus wrap with mixed greens', dinner: 'Thai peanut noodles with tofu & vegetables', snack: 'Fresh fruit salad with mint' },
+        { day: 'Tuesday', breakfast: 'Chia pudding with coconut milk, mango & granola', lunch: 'Quinoa & black bean power bowl with avocado', dinner: 'Chickpea tikka masala with basmati rice & naan', snack: 'Roasted chickpeas with spices' },
+        { day: 'Wednesday', breakfast: 'Tofu scramble with peppers, onions & spinach', lunch: 'Mediterranean lentil salad with sun-dried tomatoes', dinner: 'Sweet potato & black bean tacos with cashew crema', snack: 'Almond butter & banana on rice cakes' },
+        { day: 'Thursday', breakfast: 'Green smoothie with kale, banana, mango & flax', lunch: 'Falafel bowl with tabbouleh & tahini dressing', dinner: 'Mushroom & walnut bolognese with whole-wheat pasta', snack: 'Trail mix with nuts, seeds & dark chocolate' },
+        { day: 'Friday', breakfast: 'Overnight oats with oat milk, berries & hemp seeds', lunch: 'Spicy Thai coconut soup with vegetables & rice noodles', dinner: 'Stuffed acorn squash with wild rice & cranberries', snack: 'Edamame with sea salt' },
+        { day: 'Saturday', breakfast: 'Banana oat pancakes with maple syrup & blueberries', lunch: 'BBQ jackfruit sandwich with coleslaw', dinner: 'Vegetable pad Thai with crispy tofu & peanuts', snack: 'Dates stuffed with almond butter' },
+        { day: 'Sunday', breakfast: 'Avocado toast on sourdough with hemp seeds & red pepper flakes', lunch: 'Roasted cauliflower & lentil curry bowl', dinner: 'Vegan Buddha bowl with sweet potato, kale & tahini', snack: 'Frozen banana ice cream with cacao nibs' },
+    ],
+};
+
+/* ──────────────────────────────────────────────
+   TIPS DATA
+   ────────────────────────────────────────────── */
+
+const TIPS_BY_GOAL = {
+    lose: [
+        'Drink a full glass of water 20 minutes before each meal — it naturally reduces portion sizes.',
+        'Focus on high-fiber vegetables and lean proteins to stay satisfied longer with fewer calories.',
+        'Practice mindful eating: chew slowly, savor flavors, and stop when you feel 80% full.',
+        'Get 7–9 hours of quality sleep — poor sleep increases hunger hormones and cravings.',
+    ],
+    gain: [
+        'Eat every 3–4 hours to maintain a consistent caloric surplus throughout the day.',
+        'Add healthy calorie-dense foods like nuts, nut butter, avocado, and olive oil to your meals.',
+        'Prioritize post-workout nutrition — consume protein and carbs within 45 minutes of training.',
+        'Track your intake for the first 2 weeks to ensure you\'re consistently hitting your surplus target.',
+    ],
+    maintain: [
+        'Build consistent meal timing habits — your body thrives on routine and regularity.',
+        'Aim for a balanced plate: ½ vegetables, ¼ lean protein, ¼ complex carbohydrates.',
+        'Stay hydrated — aim for at least 8 glasses of water per day, more if you\'re active.',
+        'Weigh yourself weekly at the same time to catch trends early and adjust accordingly.',
+    ],
+};
+
+/* ──────────────────────────────────────────────
+   UTILITY FUNCTIONS
+   ────────────────────────────────────────────── */
+
+function calculateCalories(data) {
+    const { age, weight, height, sex, goal, activity } = data;
+    // Mifflin-St Jeor
+    let bmr;
+    if (sex === 'male') {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+    } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+    }
+    const activityMultipliers = { sedentary: 1.2, moderate: 1.55, active: 1.9 };
+    let tdee = bmr * (activityMultipliers[activity] || 1.2);
+    if (goal === 'lose') tdee -= 500;
+    if (goal === 'gain') tdee += 400;
+    return Math.round(tdee);
+}
+
+function calculateMacros(calories, goal) {
+    const ratios = {
+        lose: { protein: 0.40, carbs: 0.30, fats: 0.30 },
+        gain: { protein: 0.30, carbs: 0.45, fats: 0.25 },
+        maintain: { protein: 0.30, carbs: 0.40, fats: 0.30 },
+    };
+    const r = ratios[goal] || ratios.maintain;
+    return {
+        protein: { grams: Math.round((calories * r.protein) / 4), pct: Math.round(r.protein * 100) },
+        carbs: { grams: Math.round((calories * r.carbs) / 4), pct: Math.round(r.carbs * 100) },
+        fats: { grams: Math.round((calories * r.fats) / 9), pct: Math.round(r.fats * 100) },
+    };
+}
+
+/* ──────────────────────────────────────────────
+   COMPONENTS
+   ────────────────────────────────────────────── */
+
+// ─── Navbar ───
+function Navbar() {
+    return (
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-md">
+                        <Leaf className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-xl font-bold bg-gradient-to-r from-[#2E7D32] to-[#1565C0] bg-clip-text text-transparent">
+                        NutriSync
+                    </span>
+                </div>
+                <span className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide">
+                    Personalized Nutrition
+                </span>
+            </div>
+        </nav>
+    );
+}
+
+// ─── Landing Page ───
+function LandingPage({ onStart }) {
+    const steps = [
+        { icon: ClipboardList, title: 'Take the Survey', desc: 'Answer a few quick questions about your body, goals, and preferences.' },
+        { icon: Cpu, title: 'We Process', desc: 'Our algorithm calculates your ideal calorie and macro targets.' },
+        { icon: Utensils, title: 'Get Your Plan', desc: 'Receive a personalized 7-day meal plan instantly.' },
+    ];
+
+    return (
+        <div className="min-h-screen bg-white">
+            {/* Hero */}
+            <section className="relative pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-blue-50" />
+                <div className="absolute top-20 right-0 w-72 h-72 bg-[#2E7D32]/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#1565C0]/5 rounded-full blur-3xl" />
+
+                <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-sm font-semibold mb-6">
+                        <Activity className="w-4 h-4" />
+                        Science-backed nutrition
+                    </div>
+
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-4">
+                        Your Personalized<br />
+                        <span className="bg-gradient-to-r from-[#2E7D32] to-[#1565C0] bg-clip-text text-transparent">
+                            Nutrition Plan
+                        </span>
+                    </h1>
+
+                    <p className="text-lg sm:text-xl text-gray-500 font-medium mb-3 max-w-xl mx-auto">
+                        Eat smart, live better — no excuses.
+                    </p>
+                    <p className="text-base text-gray-400 mb-10 max-w-lg mx-auto">
+                        Get a calorie-optimized meal plan tailored to your body, goals, and dietary preferences — in under 2 minutes.
+                    </p>
+
+                    <button
+                        id="get-my-plan-btn"
+                        onClick={onStart}
+                        className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-bold text-lg shadow-lg shadow-green-200 hover:shadow-xl hover:shadow-green-300 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                    >
+                        Get My Plan
+                        <ArrowRight className="w-5 h-5" />
+                    </button>
+                </div>
+            </section>
+
+            {/* How it works */}
+            <section className="py-16 sm:py-24 bg-white">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6">
+                    <h2 className="text-center text-2xl sm:text-3xl font-bold text-gray-900 mb-2">How It Works</h2>
+                    <p className="text-center text-gray-400 mb-12">Three simple steps to your personalized plan</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {steps.map((step, i) => (
+                            <div
+                                key={i}
+                                className="relative group bg-white border border-gray-100 rounded-3xl p-8 text-center hover:shadow-xl hover:border-gray-200 transition-all duration-300"
+                            >
+                                <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-br from-[#2E7D32] to-[#1565C0] text-white text-sm font-bold flex items-center justify-center shadow-md">
+                                    {i + 1}
+                                </div>
+                                <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <step.icon className="w-8 h-8 text-[#2E7D32]" />
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+                                <p className="text-sm text-gray-400 leading-relaxed">{step.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="py-8 bg-gray-50 border-t border-gray-100 text-center">
+                <p className="text-xs text-gray-400">© 2026 NutriSync. Eat smart, live better.</p>
+            </footer>
+        </div>
+    );
+}
+
+// ─── Survey Form ───
+function SurveyForm({ onSubmit }) {
+    const [step, setStep] = useState(0);
+    const [form, setForm] = useState({
+        age: '', weight: '', height: '', sex: 'male',
+        goal: 'maintain',
+        activity: 'moderate', meals: '3',
+        diet: 'none',
+    });
+
+    const update = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+    const canNext = () => {
+        if (step === 0) return form.age && form.weight && form.height;
+        return true;
+    };
+
+    const totalSteps = 4;
+
+    const handleSubmit = () => {
+        onSubmit({
+            ...form,
+            age: Number(form.age),
+            weight: Number(form.weight),
+            height: Number(form.height),
+            meals: Number(form.meals),
+        });
+    };
+
+    // Radio-style selector component
+    const Option = ({ selected, onClick, icon: Icon, label, sublabel }) => (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`flex items-center gap-3 w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer ${selected
+                    ? 'border-[#2E7D32] bg-[#2E7D32]/5 shadow-sm'
+                    : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+                }`}
+        >
+            {Icon && (
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${selected ? 'bg-[#2E7D32] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    <Icon className="w-5 h-5" />
+                </div>
+            )}
+            <div className="flex-1">
+                <p className={`font-semibold text-sm ${selected ? 'text-[#2E7D32]' : 'text-gray-700'}`}>{label}</p>
+                {sublabel && <p className="text-xs text-gray-400 mt-0.5">{sublabel}</p>}
+            </div>
+            {selected && <Check className="w-5 h-5 text-[#2E7D32] flex-shrink-0" />}
+        </button>
+    );
+
+    const stepContent = [
+        // Step 0: Body metrics
+        <div key="s0" className="space-y-5">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">About You</h3>
+            <p className="text-sm text-gray-400 mb-6">Enter your basic information so we can calculate your needs.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Age</label>
+                    <input
+                        id="input-age"
+                        type="number" min="10" max="120" placeholder="e.g. 28"
+                        value={form.age} onChange={(e) => update('age', e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] transition text-gray-800 font-medium"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Weight (kg)</label>
+                    <input
+                        id="input-weight"
+                        type="number" min="20" max="300" placeholder="e.g. 75"
+                        value={form.weight} onChange={(e) => update('weight', e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] transition text-gray-800 font-medium"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Height (cm)</label>
+                    <input
+                        id="input-height"
+                        type="number" min="100" max="250" placeholder="e.g. 175"
+                        value={form.height} onChange={(e) => update('height', e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] transition text-gray-800 font-medium"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Biological Sex</label>
+                    <div className="flex gap-3 mt-1">
+                        {['male', 'female'].map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => update('sex', s)}
+                                className={`flex-1 py-3 rounded-xl font-semibold text-sm border-2 transition-all cursor-pointer ${form.sex === s
+                                        ? 'border-[#2E7D32] bg-[#2E7D32]/5 text-[#2E7D32]'
+                                        : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                    }`}
+                            >
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>,
+
+        // Step 1: Goal
+        <div key="s1" className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Your Goal</h3>
+            <p className="text-sm text-gray-400 mb-6">What would you like to achieve?</p>
+            <Option selected={form.goal === 'lose'} onClick={() => update('goal', 'lose')} icon={Flame} label="Lose Weight" sublabel="Create a caloric deficit to burn fat" />
+            <Option selected={form.goal === 'gain'} onClick={() => update('goal', 'gain')} icon={Dumbbell} label="Gain Muscle" sublabel="Caloric surplus with high protein for growth" />
+            <Option selected={form.goal === 'maintain'} onClick={() => update('goal', 'maintain')} icon={Scale} label="Maintain Weight" sublabel="Balance calories for healthy maintenance" />
+        </div>,
+
+        // Step 2: Activity & Meals
+        <div key="s2" className="space-y-6">
+            <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">Activity Level</h3>
+                <p className="text-sm text-gray-400 mb-4">How active are you on a daily basis?</p>
+                <div className="space-y-3">
+                    <Option selected={form.activity === 'sedentary'} onClick={() => update('activity', 'sedentary')} icon={Coffee} label="Sedentary" sublabel="Little or no exercise, desk job" />
+                    <Option selected={form.activity === 'moderate'} onClick={() => update('activity', 'moderate')} icon={Activity} label="Moderately Active" sublabel="Exercise 3–5 days per week" />
+                    <Option selected={form.activity === 'active'} onClick={() => update('activity', 'active')} icon={Zap} label="Very Active" sublabel="Intense exercise 6–7 days per week" />
+                </div>
+            </div>
+            <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Meals per Day</label>
+                <div className="flex gap-3">
+                    {['2', '3', '4', '5'].map((m) => (
+                        <button
+                            key={m}
+                            type="button"
+                            onClick={() => update('meals', m)}
+                            className={`flex-1 py-3 rounded-xl font-bold text-sm border-2 transition-all cursor-pointer ${form.meals === m
+                                    ? 'border-[#2E7D32] bg-[#2E7D32]/5 text-[#2E7D32]'
+                                    : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                }`}
+                        >
+                            {m}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>,
+
+        // Step 3: Dietary preferences
+        <div key="s3" className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Dietary Preference</h3>
+            <p className="text-sm text-gray-400 mb-6">Select your eating style so we can tailor your meal plan.</p>
+            <Option selected={form.diet === 'none'} onClick={() => update('diet', 'none')} icon={Beef} label="No Restrictions" sublabel="Standard balanced diet" />
+            <Option selected={form.diet === 'vegetarian'} onClick={() => update('diet', 'vegetarian')} icon={Apple} label="Vegetarian" sublabel="No meat or fish, dairy & eggs OK" />
+            <Option selected={form.diet === 'vegan'} onClick={() => update('diet', 'vegan')} icon={Leaf} label="Vegan" sublabel="100% plant-based, no animal products" />
+        </div>,
+    ];
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-24 pb-12 px-4 sm:px-6">
+            <div className="max-w-lg mx-auto">
+                {/* Progress bar */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Step {step + 1} of {totalSteps}</span>
+                        <span className="text-xs font-semibold text-[#2E7D32]">{Math.round(((step + 1) / totalSteps) * 100)}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-full transition-all duration-500 ease-out"
+                            style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
+                        />
+                    </div>
+                </div>
+
+                {/* Card */}
+                <div className="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 p-6 sm:p-8">
+                    {stepContent[step]}
+
+                    {/* Navigation */}
+                    <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
+                        {step > 0 ? (
+                            <button
+                                type="button"
+                                onClick={() => setStep((s) => s - 1)}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition cursor-pointer"
+                            >
+                                <ArrowLeft className="w-4 h-4" /> Back
+                            </button>
+                        ) : <div />}
+
+                        {step < totalSteps - 1 ? (
+                            <button
+                                type="button"
+                                disabled={!canNext()}
+                                onClick={() => setStep((s) => s + 1)}
+                                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white text-sm font-bold shadow-md shadow-green-100 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                Continue <ChevronRight className="w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#1565C0] to-[#1E88E5] text-white text-sm font-bold shadow-md shadow-blue-100 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                            >
+                                Get My Plan <Utensils className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Results Page ───
+function ResultsPage({ data, onRestart }) {
+    const calories = calculateCalories(data);
+    const macros = calculateMacros(calories, data.goal);
+    const goalLabel = { lose: 'Weight Loss', gain: 'Muscle Gain', maintain: 'Maintenance' }[data.goal];
+    const mealPlan = MEAL_PLANS[data.diet] || MEAL_PLANS.none;
+    const tips = TIPS_BY_GOAL[data.goal] || TIPS_BY_GOAL.maintain;
+    const mealIcons = { breakfast: Sun, lunch: Utensils, dinner: Moon, snack: Cookie };
+
+    const [expandedDay, setExpandedDay] = useState(0);
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-24 pb-16 px-4 sm:px-6">
+            <div className="max-w-3xl mx-auto">
+                {/* Header */}
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#2E7D32]/10 text-[#2E7D32] text-sm font-semibold mb-4">
+                        <Target className="w-4 h-4" />
+                        {goalLabel} Plan
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Your Nutrition Plan</h2>
+                    <p className="text-gray-400">Calculated using the Mifflin-St Jeor equation for precision</p>
+                </div>
+
+                {/* Calorie + Macro Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+                    {/* Calorie card */}
+                    <div className="sm:col-span-4 bg-gradient-to-r from-[#2E7D32] to-[#1565C0] rounded-3xl p-6 text-white text-center shadow-xl">
+                        <p className="text-sm font-semibold opacity-80 mb-1 uppercase tracking-wider">Daily Calorie Target</p>
+                        <p className="text-5xl font-black">{calories.toLocaleString()}</p>
+                        <p className="text-sm opacity-70 mt-1">kcal / day</p>
+                    </div>
+
+                    {/* Macro cards */}
+                    {[
+                        { label: 'Protein', data: macros.protein, color: 'from-emerald-500 to-emerald-600', icon: Beef, unit: 'g' },
+                        { label: 'Carbs', data: macros.carbs, color: 'from-amber-500 to-orange-500', icon: Apple, unit: 'g' },
+                        { label: 'Fats', data: macros.fats, color: 'from-blue-500 to-indigo-500', icon: Droplets, unit: 'g' },
+                    ].map((m) => (
+                        <div key={m.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${m.color} flex items-center justify-center`}>
+                                    <m.icon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-400 uppercase">{m.label}</p>
+                                    <p className="text-lg font-bold text-gray-900">{m.data.grams}{m.unit}</p>
+                                </div>
+                            </div>
+                            {/* Mini bar */}
+                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className={`h-full bg-gradient-to-r ${m.color} rounded-full`} style={{ width: `${m.data.pct}%` }} />
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1.5 text-right">{m.data.pct}% of calories</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 7-Day Meal Plan */}
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">7-Day Meal Plan</h3>
+                    <p className="text-sm text-gray-400 mb-6">Tailored to your {data.diet === 'none' ? 'standard' : data.diet} dietary preference</p>
+
+                    <div className="space-y-3">
+                        {mealPlan.map((day, i) => (
+                            <div key={day.day} className="border border-gray-100 rounded-2xl overflow-hidden">
+                                <button
+                                    type="button"
+                                    onClick={() => setExpandedDay(expandedDay === i ? -1 : i)}
+                                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${expandedDay === i ? 'bg-[#2E7D32] text-white' : 'bg-gray-100 text-gray-500'
+                                            }`}>
+                                            {i + 1}
+                                        </div>
+                                        <span className="font-semibold text-gray-800">{day.day}</span>
+                                    </div>
+                                    <ChevronRight className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${expandedDay === i ? 'rotate-90' : ''}`} />
+                                </button>
+
+                                {expandedDay === i && (
+                                    <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-gray-50">
+                                        {['breakfast', 'lunch', 'dinner', 'snack'].map((meal) => {
+                                            const MealIcon = mealIcons[meal];
+                                            return (
+                                                <div key={meal} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
+                                                    <MealIcon className="w-4 h-4 text-[#2E7D32] mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-gray-400 uppercase">{meal}</p>
+                                                        <p className="text-sm text-gray-700 leading-snug">{day[meal]}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Tips */}
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Personalized Tips</h3>
+                    <p className="text-sm text-gray-400 mb-6">Expert advice for your {goalLabel.toLowerCase()} journey</p>
+                    <div className="space-y-4">
+                        {tips.map((tip, i) => (
+                            <div key={i} className="flex items-start gap-3 p-4 rounded-2xl bg-gradient-to-r from-green-50 to-blue-50 border border-green-100/50">
+                                <div className="w-7 h-7 rounded-lg bg-[#2E7D32] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Heart className="w-4 h-4 text-white" />
+                                </div>
+                                <p className="text-sm text-gray-700 leading-relaxed">{tip}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Start Over */}
+                <div className="text-center">
+                    <button
+                        id="start-over-btn"
+                        onClick={onRestart}
+                        className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-[#2E7D32] hover:text-[#2E7D32] hover:shadow-lg transition-all duration-200 cursor-pointer"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        Start Over
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ──────────────────────────────────────────────
+   MAIN APP
+   ────────────────────────────────────────────── */
+
+export default function App() {
+    const [screen, setScreen] = useState('landing'); // 'landing' | 'survey' | 'results'
+    const [userData, setUserData] = useState(null);
+
+    const handleStart = () => {
+        setScreen('survey');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleSurveySubmit = (data) => {
+        setUserData(data);
+        setScreen('results');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleRestart = () => {
+        setUserData(null);
+        setScreen('landing');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    return (
+        <>
+            <Navbar />
+            {screen === 'landing' && <LandingPage onStart={handleStart} />}
+            {screen === 'survey' && <SurveyForm onSubmit={handleSurveySubmit} />}
+            {screen === 'results' && <ResultsPage data={userData} onRestart={handleRestart} />}
+        </>
+    );
+}

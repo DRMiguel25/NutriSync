@@ -4,7 +4,7 @@ import {
     RotateCcw, Activity, Target, Flame, Dumbbell, Scale, Heart, Apple, Beef,
     Droplets, Zap, Sun, Moon, Coffee, Cookie, Check, Lock, User, LogOut,
     Save, Calendar, CheckCircle, BarChart3, History, Eye, EyeOff, Shield,
-    Mail, Trash2,
+    Mail, Trash2, AlertTriangle, Home,
 } from 'lucide-react';
 
 /* ──────────────────────────────────────────────
@@ -143,34 +143,57 @@ function saveUserPlans(userId, plans) { localStorage.setItem(`nutrisync_plans_${
    ────────────────────────────────────────────── */
 
 // ─── Navbar ───
-function Navbar({ user, onLogout, onDashboard }) {
+function Navbar({ user, onLogout, onDashboard, onHome, screen }) {
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-md">
-                        <Leaf className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-xl font-bold bg-gradient-to-r from-[#2E7D32] to-[#1565C0] bg-clip-text text-transparent">NutriSync</span>
-                </div>
-                {user ? (
-                    <div className="flex items-center gap-3">
-                        <button onClick={onDashboard} className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#2E7D32] font-medium transition cursor-pointer">
-                            <BarChart3 className="w-4 h-4" /> Dashboard
-                        </button>
-                        <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#2E7D32] to-[#1565C0] flex items-center justify-center">
-                                <span className="text-xs font-bold text-white">{user.name.charAt(0).toUpperCase()}</span>
-                            </div>
-                            <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[100px] truncate">{user.name}</span>
-                            <button onClick={onLogout} className="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Logout"><LogOut className="w-4 h-4" /></button>
+        <>
+            {/* Top nav */}
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={onHome}>
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-md">
+                            <Leaf className="w-5 h-5 text-white" />
                         </div>
+                        <span className="text-xl font-bold bg-gradient-to-r from-[#2E7D32] to-[#1565C0] bg-clip-text text-transparent">NutriSync</span>
                     </div>
-                ) : (
-                    <span className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide">Personalized Nutrition</span>
-                )}
-            </div>
-        </nav>
+                    {user ? (
+                        <div className="flex items-center gap-3">
+                            <button onClick={onDashboard} className="hidden sm:flex items-center gap-1.5 text-sm font-medium transition cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-50">
+                                <BarChart3 className={`w-4 h-4 ${screen === 'dashboard' ? 'text-[#2E7D32]' : 'text-gray-500'}`} />
+                                <span className={screen === 'dashboard' ? 'text-[#2E7D32]' : 'text-gray-500'}>Dashboard</span>
+                            </button>
+                            <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#2E7D32] to-[#1565C0] flex items-center justify-center">
+                                    <span className="text-xs font-bold text-white">{user.name.charAt(0).toUpperCase()}</span>
+                                </div>
+                                <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[100px] truncate">{user.name}</span>
+                                <button onClick={onLogout} className="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Logout"><LogOut className="w-4 h-4" /></button>
+                            </div>
+                        </div>
+                    ) : (
+                        <span className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide">Personalized Nutrition</span>
+                    )}
+                </div>
+            </nav>
+            {/* Mobile bottom nav */}
+            {user && (
+                <nav className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                    <div className="flex items-center justify-around py-2 px-4">
+                        <button onClick={onHome} className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all cursor-pointer ${screen === 'landing' ? 'text-[#2E7D32]' : 'text-gray-400'}`}>
+                            <Home className="w-5 h-5" />
+                            <span className="text-[10px] font-semibold">Home</span>
+                        </button>
+                        <button onClick={onDashboard} className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all cursor-pointer ${screen === 'dashboard' ? 'text-[#2E7D32]' : 'text-gray-400'}`}>
+                            <BarChart3 className="w-5 h-5" />
+                            <span className="text-[10px] font-semibold">Dashboard</span>
+                        </button>
+                        <button onClick={onLogout} className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl text-gray-400 hover:text-red-500 transition-all cursor-pointer">
+                            <LogOut className="w-5 h-5" />
+                            <span className="text-[10px] font-semibold">Logout</span>
+                        </button>
+                    </div>
+                </nav>
+            )}
+        </>
     );
 }
 
@@ -692,6 +715,7 @@ function DashboardPage({ user, onNewPlan }) {
     const [activeIdx, setActiveIdx] = useState(0);
     const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'];
     const mealIcons = { breakfast: Sun, lunch: Utensils, dinner: Moon, snack: Cookie };
+    const mealLabels = { breakfast: 'Desayuno', lunch: 'Almuerzo', dinner: 'Cena', snack: 'Snack' };
 
     const save = (updated) => { setPlans(updated); saveUserPlans(user.id, updated); };
 
@@ -717,9 +741,14 @@ function DashboardPage({ user, onNewPlan }) {
         return total ? Math.round((done / total) * 100) : 0;
     };
 
+    const getDayProgress = (plan, dayKey) => {
+        const done = MEALS.filter((m) => plan.tracking[dayKey]?.[m]).length;
+        return { done, total: MEALS.length, pct: Math.round((done / MEALS.length) * 100) };
+    };
+
     if (!plans.length) return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-28 pb-12 px-4 flex items-center justify-center">
-            <div className="text-center">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-28 pb-24 px-4 flex items-center justify-center">
+            <div className="text-center animate-slide-in">
                 <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gray-100 flex items-center justify-center"><ClipboardList className="w-10 h-10 text-gray-300" /></div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">No Plans Yet</h2>
                 <p className="text-gray-400 mb-6">Complete the survey to create your first nutrition plan.</p>
@@ -730,11 +759,15 @@ function DashboardPage({ user, onNewPlan }) {
 
     const plan = plans[activeIdx];
     const adherence = getAdherence(plan);
+    const missedDays = plan.mealPlan.filter((day) => {
+        const p = getDayProgress(plan, day.day);
+        return p.done > 0 && p.done < p.total;
+    });
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-24 pb-16 px-4 sm:px-6">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-24 pb-24 px-4 sm:px-6">
             <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
                         <p className="text-sm text-gray-400">Welcome back, {user.name}</p>
@@ -744,12 +777,29 @@ function DashboardPage({ user, onNewPlan }) {
                     </button>
                 </div>
 
+                {/* Missed meals alert */}
+                {missedDays.length > 0 && adherence < 75 && (
+                    <div className="mb-6 animate-slide-in">
+                        <div className={`flex items-start gap-3 p-4 rounded-2xl border ${adherence < 30 ? 'bg-red-50 border-red-200 animate-pulse-warn' : adherence < 50 ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'}`}>
+                            <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${adherence < 30 ? 'text-red-500' : adherence < 50 ? 'text-amber-500' : 'text-blue-500'}`} />
+                            <div>
+                                <p className={`text-sm font-bold ${adherence < 30 ? 'text-red-700' : adherence < 50 ? 'text-amber-700' : 'text-blue-700'}`}>
+                                    {adherence < 30 ? '⚠️ You\'re falling behind!' : adherence < 50 ? '🔔 Some meals need your attention' : '💪 Almost there, keep going!'}
+                                </p>
+                                <p className={`text-xs mt-1 ${adherence < 30 ? 'text-red-500' : adherence < 50 ? 'text-amber-500' : 'text-blue-500'}`}>
+                                    {missedDays.length} day{missedDays.length > 1 ? 's' : ''} with incomplete meals — {missedDays.map((d) => d.day).join(', ')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Plan History */}
-                    <div className="lg:col-span-1">
+                    <div className="lg:col-span-1 space-y-4">
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><History className="w-4 h-4 text-[#2E7D32]" /> Plan History</h3>
-                            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
                                 {plans.map((p, i) => (
                                     <div key={p.id} onClick={() => setActiveIdx(i)} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${activeIdx === i ? 'bg-[#2E7D32]/5 border border-[#2E7D32]/20' : 'hover:bg-gray-50 border border-transparent'}`}>
                                         <div className="flex-1 min-w-0">
@@ -757,11 +807,39 @@ function DashboardPage({ user, onNewPlan }) {
                                             <p className="text-xs text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</p>
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0">
-                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getAdherence(p) >= 50 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{getAdherence(p)}%</span>
+                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getAdherence(p) >= 50 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{getAdherence(p)}%</span>
                                             <button onClick={(e) => { e.stopPropagation(); deletePlan(i); }} className="text-gray-300 hover:text-red-500 transition cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Day-by-day progress dots */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-amber-500" /> Day Overview</h3>
+                            <div className="space-y-2">
+                                {plan.mealPlan.map((day) => {
+                                    const p = getDayProgress(plan, day.day);
+                                    const color = p.pct === 100 ? 'bg-[#2E7D32]' : p.pct >= 50 ? 'bg-amber-400' : p.pct > 0 ? 'bg-red-400' : 'bg-gray-200';
+                                    const textColor = p.pct === 100 ? 'text-[#2E7D32]' : p.pct >= 50 ? 'text-amber-600' : p.pct > 0 ? 'text-red-500' : 'text-gray-400';
+                                    return (
+                                        <div key={day.day} className="flex items-center gap-3">
+                                            <div className={`w-3 h-3 rounded-full flex-shrink-0 transition-all duration-300 ${color}`} />
+                                            <span className="text-xs font-medium text-gray-600 w-20 truncate">{day.day}</span>
+                                            <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full transition-all duration-500 ${p.pct === 100 ? 'bg-[#2E7D32]' : p.pct >= 50 ? 'bg-amber-400' : p.pct > 0 ? 'bg-red-400' : 'bg-gray-200'}`} style={{ width: `${p.pct}%` }} />
+                                            </div>
+                                            <span className={`text-xs font-bold w-10 text-right ${textColor}`}>{p.done}/{p.total}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-4 text-[10px] text-gray-400">
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#2E7D32] inline-block" /> Complete</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Partial</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Started</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-200 inline-block" /> Pending</span>
                             </div>
                         </div>
                     </div>
@@ -774,9 +852,9 @@ function DashboardPage({ user, onNewPlan }) {
                                 <p className="text-xl font-bold text-gray-900">{plan.calories}</p>
                                 <p className="text-xs text-gray-400">kcal/day</p>
                             </div>
-                            <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-                                <BarChart3 className="w-5 h-5 text-[#1565C0] mx-auto mb-1" />
-                                <p className="text-xl font-bold text-gray-900">{adherence}%</p>
+                            <div className={`bg-white rounded-2xl border p-4 text-center transition-all ${adherence < 30 ? 'border-red-200 bg-red-50/30' : adherence < 50 ? 'border-amber-200 bg-amber-50/30' : 'border-gray-100'}`}>
+                                <BarChart3 className={`w-5 h-5 mx-auto mb-1 ${adherence < 30 ? 'text-red-500' : adherence < 50 ? 'text-amber-500' : 'text-[#1565C0]'}`} />
+                                <p className={`text-xl font-bold ${adherence < 30 ? 'text-red-600' : adherence < 50 ? 'text-amber-600' : 'text-gray-900'}`}>{adherence}%</p>
                                 <p className="text-xs text-gray-400">adherence</p>
                             </div>
                             <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
@@ -789,10 +867,10 @@ function DashboardPage({ user, onNewPlan }) {
                         <div className="bg-white rounded-2xl border border-gray-100 p-5">
                             <div className="flex items-center justify-between mb-2">
                                 <p className="text-sm font-bold text-gray-700">Weekly Progress</p>
-                                <p className="text-sm font-bold text-[#2E7D32]">{adherence}%</p>
+                                <p className={`text-sm font-bold ${adherence < 30 ? 'text-red-500' : adherence < 50 ? 'text-amber-500' : 'text-[#2E7D32]'}`}>{adherence}%</p>
                             </div>
                             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-full transition-all duration-500" style={{ width: `${adherence}%` }} />
+                                <div className={`h-full rounded-full transition-all duration-500 ${adherence < 30 ? 'bg-gradient-to-r from-red-400 to-red-500' : adherence < 50 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-[#2E7D32] to-[#4CAF50]'}`} style={{ width: `${adherence}%` }} />
                             </div>
                         </div>
 
@@ -800,19 +878,24 @@ function DashboardPage({ user, onNewPlan }) {
                             <h3 className="font-bold text-gray-900 mb-4">Daily Meal Tracking</h3>
                             <div className="space-y-3">
                                 {plan.mealPlan.map((day, dayIdx) => {
-                                    const completed = MEALS.filter((m) => plan.tracking[day.day]?.[m]).length;
+                                    const dp = getDayProgress(plan, day.day);
+                                    const dayColor = dp.pct === 100 ? 'border-green-200 bg-green-50/30' : dp.pct > 0 && dp.pct < 50 ? 'border-red-200 bg-red-50/20' : dp.pct >= 50 ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100';
                                     return (
-                                        <div key={day.day} className="border border-gray-100 rounded-xl p-4">
+                                        <div key={day.day} className={`border rounded-xl p-4 transition-all duration-300 ${dayColor}`}>
                                             <div className="flex items-center justify-between mb-3">
-                                                <span className="font-semibold text-gray-800 text-sm">{day.day}</span>
-                                                <span className="text-xs font-medium text-gray-400">{completed}/{MEALS.length} meals</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-gray-800 text-sm">{day.day}</span>
+                                                    {dp.pct === 100 && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold animate-slide-in">✓ Complete!</span>}
+                                                    {dp.pct > 0 && dp.pct < 50 && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold animate-pulse-warn">⚠ Catch up!</span>}
+                                                </div>
+                                                <span className={`text-xs font-medium ${dp.pct === 100 ? 'text-green-600' : dp.pct > 0 ? 'text-amber-500' : 'text-gray-400'}`}>{dp.done}/{dp.total} meals</span>
                                             </div>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                                 {MEALS.map((meal) => {
                                                     const done = plan.tracking[day.day]?.[meal];
                                                     const MIcon = mealIcons[meal];
                                                     return (
-                                                        <button key={meal} onClick={() => toggleMeal(dayIdx, meal)} className={`flex items-center gap-2 p-2.5 rounded-lg text-left text-xs font-medium transition-all cursor-pointer ${done ? 'bg-[#2E7D32]/10 text-[#2E7D32] border border-[#2E7D32]/20' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'}`}>
+                                                        <button key={meal} onClick={() => toggleMeal(dayIdx, meal)} className={`flex items-center gap-2 p-2.5 rounded-lg text-left text-xs font-medium transition-all duration-200 cursor-pointer ${done ? 'bg-[#2E7D32]/10 text-[#2E7D32] border border-[#2E7D32]/20 shadow-sm' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100 hover:border-gray-200'}`}>
                                                             {done ? <CheckCircle className="w-4 h-4 flex-shrink-0" /> : <MIcon className="w-4 h-4 flex-shrink-0" />}
                                                             <span className="capitalize truncate">{meal}</span>
                                                         </button>
@@ -864,10 +947,11 @@ export default function App() {
     const handleLogout = () => { clearSession(); setUser(null); go('landing'); };
     const handleNewPlan = () => go('survey');
     const handleDashboard = () => go('dashboard');
+    const handleHome = () => go('landing');
 
     return (
         <>
-            <Navbar user={user} onLogout={handleLogout} onDashboard={handleDashboard} />
+            <Navbar user={user} onLogout={handleLogout} onDashboard={handleDashboard} onHome={handleHome} screen={screen} />
             {screen === 'landing' && <LandingPage onStart={handleStart} />}
             {screen === 'auth' && <AuthScreen onAuth={handleAuth} />}
             {screen === 'survey' && <SurveyForm onSubmit={handleSurveySubmit} />}

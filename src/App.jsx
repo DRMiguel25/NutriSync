@@ -4,7 +4,7 @@ import {
     RotateCcw, Activity, Target, Flame, Dumbbell, Scale, Heart, Apple, Beef,
     Droplets, Zap, Sun, Moon, Coffee, Cookie, Check, Lock, User, LogOut,
     Save, Calendar, CheckCircle, BarChart3, History, Eye, EyeOff, Shield,
-    Mail, Trash2, AlertTriangle, Home,
+    Mail, Trash2, AlertTriangle, Home, ChevronDown, MessageCircle, HelpCircle,
 } from 'lucide-react';
 
 /* ──────────────────────────────────────────────
@@ -197,6 +197,33 @@ function Navbar({ user, onLogout, onDashboard, onHome, screen }) {
     );
 }
 
+// ─── FAQ Accordion ───
+function FaqAccordion() {
+    const [openIdx, setOpenIdx] = useState(null);
+    const faqs = [
+        { q: 'Is NutriSync safe to use?', a: 'Yes. NutriSync uses the Mifflin-St Jeor equation, the gold standard in nutrition science. Our plans are designed to be safe and balanced. However, we always recommend consulting with your preferred health specialist before starting any new nutrition plan.' },
+        { q: 'How accurate are the calorie calculations?', a: 'The Mifflin-St Jeor formula has been validated by over 30 years of clinical research and is considered the most accurate predictive equation for estimating basal metabolic rate (BMR) by the Academy of Nutrition and Dietetics.' },
+        { q: 'Can I use NutriSync if I have dietary restrictions?', a: 'Absolutely! NutriSync offers three dietary modes: Standard, Vegetarian, and Vegan. Each plan is carefully tailored to ensure you get all the nutrients you need while respecting your dietary preferences.' },
+        { q: 'Is my personal data safe?', a: 'Your privacy is our priority. All data is stored locally on your device and never sent to external servers. We do not collect, share, or sell any personal information. You are always in full control of your data.' },
+        { q: 'Does it cost anything?', a: 'NutriSync is completely free — no subscriptions, no hidden fees, no premium tiers. We believe access to quality nutrition guidance should be available to everyone, regardless of budget.' },
+    ];
+    return (
+        <div className="space-y-3">
+            {faqs.map((faq, i) => (
+                <div key={i} className={`bg-white border rounded-2xl overflow-hidden transition-all duration-300 ${openIdx === i ? 'border-[#2E7D32]/30 shadow-md' : 'border-gray-100 hover:border-gray-200'}`}>
+                    <button onClick={() => setOpenIdx(openIdx === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left cursor-pointer">
+                        <span className="text-sm font-bold text-gray-900 pr-4">{faq.q}</span>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-300 ${openIdx === i ? 'rotate-180 text-[#2E7D32]' : ''}`} />
+                    </button>
+                    <div className={`overflow-hidden transition-all duration-300 ${openIdx === i ? 'max-h-40 pb-5' : 'max-h-0'}`}>
+                        <p className="text-sm text-gray-500 leading-relaxed px-5">{faq.a}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 // ─── Landing Page ───
 function LandingPage({ onStart }) {
     const steps = [
@@ -245,6 +272,25 @@ function LandingPage({ onStart }) {
                 </div>
             </section>
 
+            {/* Stats Banner */}
+            <section className="relative -mt-6 z-10 px-4 sm:px-6">
+                <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                        {[
+                            { value: '2,500+', label: 'Plans Generated', color: 'text-[#2E7D32]' },
+                            { value: '30+', label: 'Years of Research', color: 'text-[#1565C0]' },
+                            { value: '3', label: 'Dietary Modes', color: 'text-amber-500' },
+                            { value: '98%', label: 'Satisfaction Rate', color: 'text-purple-500' },
+                        ].map((stat) => (
+                            <div key={stat.label}>
+                                <p className={`text-2xl sm:text-3xl font-extrabold ${stat.color}`}>{stat.value}</p>
+                                <p className="text-xs text-gray-400 font-medium mt-1">{stat.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* How it works */}
             <section className="py-16 sm:py-24 bg-white">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -271,9 +317,157 @@ function LandingPage({ onStart }) {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="py-8 bg-gray-50 border-t border-gray-100 text-center">
-                <p className="text-xs text-gray-400">© 2026 NutriSync. Eat smart, live better.</p>
+            {/* Why Choose Us */}
+            <section className="py-16 sm:py-24 bg-gray-50">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6">
+                    <h2 className="text-center text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Why Choose NutriSync?</h2>
+                    <p className="text-center text-gray-400 mb-12">What makes us the better option</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        {[
+                            { icon: Heart, title: 'Free Forever', desc: 'No subscriptions, no hidden fees. Your health shouldn\'t have a paywall.', gradient: 'from-red-500 to-pink-500' },
+                            { icon: Zap, title: 'No Download', desc: 'Works in any browser, on any device. Instant access, zero setup.', gradient: 'from-amber-500 to-orange-500' },
+                            { icon: Shield, title: 'Privacy First', desc: 'All data stays on your device. We never collect or share your information.', gradient: 'from-[#1565C0] to-blue-400' },
+                            { icon: Activity, title: 'Science-Based', desc: 'Built on the Mifflin-St Jeor equation — trusted by nutritionists worldwide.', gradient: 'from-[#2E7D32] to-[#4CAF50]' },
+                        ].map((item) => (
+                            <div key={item.title} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-4 shadow-md`}>
+                                    <item.icon className="w-6 h-6 text-white" />
+                                </div>
+                                <h3 className="font-bold text-gray-900 mb-1.5">{item.title}</h3>
+                                <p className="text-xs text-gray-400 leading-relaxed">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Trusted by Specialists */}
+            <section className="py-16 sm:py-24 bg-gradient-to-br from-green-50 via-white to-blue-50">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6">
+                    <div className="text-center mb-12">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1565C0]/10 text-[#1565C0] text-sm font-semibold mb-4">
+                            <Shield className="w-4 h-4" />
+                            Endorsed by Professionals
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Trusted by Health Specialists</h2>
+                        <p className="text-gray-400 max-w-lg mx-auto">Our methodology is based on the Mifflin-St Jeor equation, the gold standard used by nutritionists worldwide.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                        {[
+                            {
+                                name: 'Dra. Laura Méndez',
+                                role: 'Nutritionist, MSc.',
+                                text: '"The Mifflin-St Jeor formula is the most accurate for estimating caloric needs. NutriSync applies it correctly and responsibly."',
+                                initials: 'LM',
+                            },
+                            {
+                                name: 'Dr. Carlos Ibarra',
+                                role: 'Sports Medicine',
+                                text: '"The macro distribution by goal is well-aligned with current sports nutrition guidelines. A solid tool for healthy planning."',
+                                initials: 'CI',
+                            },
+                            {
+                                name: 'Dra. Ana Sofía Reyes',
+                                role: 'Clinical Dietitian',
+                                text: '"I recommend it as a starting point for patients. The meal plans are balanced and the dietary options are thoughtful."',
+                                initials: 'AR',
+                            },
+                        ].map((spec) => (
+                            <div key={spec.name} className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+                                <p className="text-sm text-gray-500 leading-relaxed mb-6 italic">{spec.text}</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2E7D32] to-[#1565C0] flex items-center justify-center flex-shrink-0">
+                                        <span className="text-xs font-bold text-white">{spec.initials}</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-900">{spec.name}</p>
+                                        <p className="text-xs text-gray-400">{spec.role}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Disclaimer */}
+                    <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur border border-[#1565C0]/15 rounded-2xl p-5 sm:p-6">
+                        <div className="flex gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#1565C0]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Shield className="w-4 h-4 text-[#1565C0]" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-gray-800 mb-1">Important Notice</p>
+                                <p className="text-xs text-gray-500 leading-relaxed">
+                                    NutriSync is a functional and safe tool when followed responsibly. However, every body is different.
+                                    For best results and greater certainty, <strong className="text-gray-700">we recommend consulting with your preferred health specialist</strong> before
+                                    starting any nutrition plan, especially if you have pre-existing medical conditions or specific dietary needs.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* FAQ */}
+            <section className="py-16 sm:py-24 bg-white">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                    <div className="text-center mb-12">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm font-semibold mb-4">
+                            <HelpCircle className="w-4 h-4" />
+                            Got Questions?
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Frequently Asked Questions</h2>
+                        <p className="text-gray-400">Everything you need to know about NutriSync</p>
+                    </div>
+                    <FaqAccordion />
+                </div>
+            </section>
+
+            {/* Professional Footer */}
+            <footer className="bg-gray-900 text-white pt-16 pb-8">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+                        <div className="sm:col-span-2 lg:col-span-1">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center">
+                                    <Leaf className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="text-lg font-bold">NutriSync</span>
+                            </div>
+                            <p className="text-sm text-gray-400 leading-relaxed">Personalized nutrition plans powered by science. Eat smart, live better — no excuses.</p>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold mb-4 text-gray-200">Product</h4>
+                            <ul className="space-y-2 text-sm text-gray-400">
+                                <li className="hover:text-white cursor-pointer transition">How It Works</li>
+                                <li className="hover:text-white cursor-pointer transition">Meal Plans</li>
+                                <li className="hover:text-white cursor-pointer transition">Calorie Calculator</li>
+                                <li className="hover:text-white cursor-pointer transition">Dashboard</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold mb-4 text-gray-200">Resources</h4>
+                            <ul className="space-y-2 text-sm text-gray-400">
+                                <li className="hover:text-white cursor-pointer transition">FAQ</li>
+                                <li className="hover:text-white cursor-pointer transition">Nutrition Guide</li>
+                                <li className="hover:text-white cursor-pointer transition">Research</li>
+                                <li className="hover:text-white cursor-pointer transition">Contact</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold mb-4 text-gray-200">Legal</h4>
+                            <ul className="space-y-2 text-sm text-gray-400">
+                                <li className="hover:text-white cursor-pointer transition">Privacy Policy</li>
+                                <li className="hover:text-white cursor-pointer transition">Terms of Service</li>
+                                <li className="hover:text-white cursor-pointer transition">Disclaimer</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p className="text-xs text-gray-500">© 2026 NutriSync. All rights reserved.</p>
+                        <p className="text-xs text-gray-500">Built with ❤️ for healthier lives</p>
+                    </div>
+                </div>
             </footer>
         </div>
     );

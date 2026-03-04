@@ -1,28 +1,10 @@
 import { useState } from 'react';
 import {
-    Leaf,
-    ArrowRight,
-    ArrowLeft,
-    ClipboardList,
-    Cpu,
-    Utensils,
-    ChevronRight,
-    RotateCcw,
-    Activity,
-    Target,
-    Flame,
-    Dumbbell,
-    Scale,
-    Heart,
-    Apple,
-    Beef,
-    Droplets,
-    Zap,
-    Sun,
-    Moon,
-    Coffee,
-    Cookie,
-    Check,
+    Leaf, ArrowRight, ArrowLeft, ClipboardList, Cpu, Utensils, ChevronRight,
+    RotateCcw, Activity, Target, Flame, Dumbbell, Scale, Heart, Apple, Beef,
+    Droplets, Zap, Sun, Moon, Coffee, Cookie, Check, Lock, User, LogOut,
+    Save, Calendar, CheckCircle, BarChart3, History, Eye, EyeOff, Shield,
+    Mail, Trash2,
 } from 'lucide-react';
 
 /* ──────────────────────────────────────────────
@@ -119,11 +101,49 @@ function calculateMacros(calories, goal) {
 }
 
 /* ──────────────────────────────────────────────
+   AUTH & STORAGE UTILITIES
+   ────────────────────────────────────────────── */
+
+function simpleHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+    return h.toString(36);
+}
+
+function getUsers() { return JSON.parse(localStorage.getItem('nutrisync_users') || '[]'); }
+function saveUsers(u) { localStorage.setItem('nutrisync_users', JSON.stringify(u)); }
+function getSession() {
+    const sid = localStorage.getItem('nutrisync_session');
+    return sid ? getUsers().find((u) => u.id === sid) || null : null;
+}
+function setSession(id) { localStorage.setItem('nutrisync_session', id); }
+function clearSession() { localStorage.removeItem('nutrisync_session'); }
+
+function registerUser(name, email, password) {
+    const users = getUsers();
+    if (users.find((u) => u.email === email)) return { error: 'Email already registered' };
+    const user = { id: Date.now().toString(36), name, email, passwordHash: simpleHash(password) };
+    users.push(user); saveUsers(users); setSession(user.id);
+    return { user };
+}
+
+function loginUser(email, password) {
+    const users = getUsers();
+    const user = users.find((u) => u.email === email && u.passwordHash === simpleHash(password));
+    if (!user) return { error: 'Invalid email or password' };
+    setSession(user.id);
+    return { user };
+}
+
+function getUserPlans(userId) { return JSON.parse(localStorage.getItem(`nutrisync_plans_${userId}`) || '[]'); }
+function saveUserPlans(userId, plans) { localStorage.setItem(`nutrisync_plans_${userId}`, JSON.stringify(plans)); }
+
+/* ──────────────────────────────────────────────
    COMPONENTS
    ────────────────────────────────────────────── */
 
 // ─── Navbar ───
-function Navbar() {
+function Navbar({ user, onLogout, onDashboard }) {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
@@ -131,13 +151,24 @@ function Navbar() {
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-md">
                         <Leaf className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-xl font-bold bg-gradient-to-r from-[#2E7D32] to-[#1565C0] bg-clip-text text-transparent">
-                        NutriSync
-                    </span>
+                    <span className="text-xl font-bold bg-gradient-to-r from-[#2E7D32] to-[#1565C0] bg-clip-text text-transparent">NutriSync</span>
                 </div>
-                <span className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide">
-                    Personalized Nutrition
-                </span>
+                {user ? (
+                    <div className="flex items-center gap-3">
+                        <button onClick={onDashboard} className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#2E7D32] font-medium transition cursor-pointer">
+                            <BarChart3 className="w-4 h-4" /> Dashboard
+                        </button>
+                        <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#2E7D32] to-[#1565C0] flex items-center justify-center">
+                                <span className="text-xs font-bold text-white">{user.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[100px] truncate">{user.name}</span>
+                            <button onClick={onLogout} className="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Logout"><LogOut className="w-4 h-4" /></button>
+                        </div>
+                    </div>
+                ) : (
+                    <span className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide">Personalized Nutrition</span>
+                )}
             </div>
         </nav>
     );
@@ -225,6 +256,85 @@ function LandingPage({ onStart }) {
     );
 }
 
+// ─── Auth Screen ───
+function AuthScreen({ onAuth }) {
+    const [isLogin, setIsLogin] = useState(true);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPw, setShowPw] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setError('');
+        if (isLogin) {
+            const res = loginUser(email, password);
+            if (res.error) return setError(res.error);
+            onAuth(res.user);
+        } else {
+            if (!name.trim()) return setError('Name is required');
+            if (!email.includes('@')) return setError('Valid email is required');
+            if (password.length < 6) return setError('Password must be at least 6 characters');
+            const res = registerUser(name.trim(), email.trim(), password);
+            if (res.error) return setError(res.error);
+            onAuth(res.user);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-28 pb-12 px-4 sm:px-6">
+            <div className="max-w-md mx-auto">
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] flex items-center justify-center shadow-lg">
+                        <Shield className="w-8 h-8 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+                    <p className="text-sm text-gray-400 mt-1">{isLogin ? 'Log in to access your plans' : 'Start your nutrition journey'}</p>
+                </div>
+                <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8 space-y-4">
+                    {!isLogin && (
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Full Name</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] transition text-gray-800 font-medium" />
+                            </div>
+                        </div>
+                    )}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Email</label>
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] transition text-gray-800 font-medium" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">Password</label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2E7D32]/30 focus:border-[#2E7D32] transition text-gray-800 font-medium" />
+                            <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    {error && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl">{error}</p>}
+                    <button type="submit" className="w-full py-3 rounded-xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-bold shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer">
+                        {isLogin ? 'Log In' : 'Create Account'}
+                    </button>
+                    <p className="text-center text-sm text-gray-400">
+                        {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+                        <button type="button" onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-[#2E7D32] font-semibold hover:underline cursor-pointer">
+                            {isLogin ? 'Sign Up' : 'Log In'}
+                        </button>
+                    </p>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 // ─── Survey Form ───
 function SurveyForm({ onSubmit }) {
     const [step, setStep] = useState(0);
@@ -259,8 +369,8 @@ function SurveyForm({ onSubmit }) {
             type="button"
             onClick={onClick}
             className={`flex items-center gap-3 w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer ${selected
-                    ? 'border-[#2E7D32] bg-[#2E7D32]/5 shadow-sm'
-                    : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+                ? 'border-[#2E7D32] bg-[#2E7D32]/5 shadow-sm'
+                : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
                 }`}
         >
             {Icon && (
@@ -318,8 +428,8 @@ function SurveyForm({ onSubmit }) {
                                 type="button"
                                 onClick={() => update('sex', s)}
                                 className={`flex-1 py-3 rounded-xl font-semibold text-sm border-2 transition-all cursor-pointer ${form.sex === s
-                                        ? 'border-[#2E7D32] bg-[#2E7D32]/5 text-[#2E7D32]'
-                                        : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                    ? 'border-[#2E7D32] bg-[#2E7D32]/5 text-[#2E7D32]'
+                                    : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'
                                     }`}
                             >
                                 {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -359,8 +469,8 @@ function SurveyForm({ onSubmit }) {
                             type="button"
                             onClick={() => update('meals', m)}
                             className={`flex-1 py-3 rounded-xl font-bold text-sm border-2 transition-all cursor-pointer ${form.meals === m
-                                    ? 'border-[#2E7D32] bg-[#2E7D32]/5 text-[#2E7D32]'
-                                    : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                ? 'border-[#2E7D32] bg-[#2E7D32]/5 text-[#2E7D32]'
+                                : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'
                                 }`}
                         >
                             {m}
@@ -439,7 +549,7 @@ function SurveyForm({ onSubmit }) {
 }
 
 // ─── Results Page ───
-function ResultsPage({ data, onRestart }) {
+function ResultsPage({ data, onRestart, onSave }) {
     const calories = calculateCalories(data);
     const macros = calculateMacros(calories, data.goal);
     const goalLabel = { lose: 'Weight Loss', gain: 'Muscle Gain', maintain: 'Maintenance' }[data.goal];
@@ -448,6 +558,7 @@ function ResultsPage({ data, onRestart }) {
     const mealIcons = { breakfast: Sun, lunch: Utensils, dinner: Moon, snack: Cookie };
 
     const [expandedDay, setExpandedDay] = useState(0);
+    const handleSave = () => onSave && onSave({ userData: data, calories, macros, mealPlan, tips, goalLabel });
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-24 pb-16 px-4 sm:px-6">
@@ -556,16 +667,164 @@ function ResultsPage({ data, onRestart }) {
                     </div>
                 </div>
 
-                {/* Start Over */}
-                <div className="text-center">
-                    <button
-                        id="start-over-btn"
-                        onClick={onRestart}
-                        className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-[#2E7D32] hover:text-[#2E7D32] hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        Start Over
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    {onSave && (
+                        <button onClick={handleSave} className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1565C0] to-[#1E88E5] text-white font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                            <Save className="w-4 h-4" /> Save My Plan
+                        </button>
+                    )}
+                    <button id="start-over-btn" onClick={onRestart} className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-[#2E7D32] hover:text-[#2E7D32] hover:shadow-lg transition-all duration-200 cursor-pointer">
+                        <RotateCcw className="w-4 h-4" /> Start Over
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ──────────────────────────────────────────────
+   DASHBOARD PAGE
+   ────────────────────────────────────────────── */
+
+function DashboardPage({ user, onNewPlan }) {
+    const [plans, setPlans] = useState(() => getUserPlans(user.id));
+    const [activeIdx, setActiveIdx] = useState(0);
+    const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'];
+    const mealIcons = { breakfast: Sun, lunch: Utensils, dinner: Moon, snack: Cookie };
+
+    const save = (updated) => { setPlans(updated); saveUserPlans(user.id, updated); };
+
+    const toggleMeal = (dayIdx, meal) => {
+        const updated = plans.map((p, i) => {
+            if (i !== activeIdx) return p;
+            const dayKey = p.mealPlan[dayIdx].day;
+            return { ...p, tracking: { ...p.tracking, [dayKey]: { ...p.tracking[dayKey], [meal]: !p.tracking[dayKey]?.[meal] } } };
+        });
+        save(updated);
+    };
+
+    const deletePlan = (idx) => {
+        const updated = plans.filter((_, i) => i !== idx);
+        save(updated);
+        if (activeIdx >= updated.length) setActiveIdx(Math.max(0, updated.length - 1));
+    };
+
+    const getAdherence = (plan) => {
+        if (!plan?.tracking) return 0;
+        let total = 0, done = 0;
+        plan.mealPlan.forEach((day) => MEALS.forEach((m) => { total++; if (plan.tracking[day.day]?.[m]) done++; }));
+        return total ? Math.round((done / total) * 100) : 0;
+    };
+
+    if (!plans.length) return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-28 pb-12 px-4 flex items-center justify-center">
+            <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gray-100 flex items-center justify-center"><ClipboardList className="w-10 h-10 text-gray-300" /></div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">No Plans Yet</h2>
+                <p className="text-gray-400 mb-6">Complete the survey to create your first nutrition plan.</p>
+                <button onClick={onNewPlan} className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white font-bold shadow-md hover:shadow-lg transition-all cursor-pointer">Create My Plan</button>
+            </div>
+        </div>
+    );
+
+    const plan = plans[activeIdx];
+    const adherence = getAdherence(plan);
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pt-24 pb-16 px-4 sm:px-6">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+                        <p className="text-sm text-gray-400">Welcome back, {user.name}</p>
+                    </div>
+                    <button onClick={onNewPlan} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer">
+                        <ClipboardList className="w-4 h-4" /> New Plan
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Plan History */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><History className="w-4 h-4 text-[#2E7D32]" /> Plan History</h3>
+                            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                                {plans.map((p, i) => (
+                                    <div key={p.id} onClick={() => setActiveIdx(i)} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${activeIdx === i ? 'bg-[#2E7D32]/5 border border-[#2E7D32]/20' : 'hover:bg-gray-50 border border-transparent'}`}>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-gray-800 truncate">{p.goalLabel} Plan</p>
+                                            <p className="text-xs text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getAdherence(p) >= 50 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{getAdherence(p)}%</span>
+                                            <button onClick={(e) => { e.stopPropagation(); deletePlan(i); }} className="text-gray-300 hover:text-red-500 transition cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Active plan */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+                                <Flame className="w-5 h-5 text-[#2E7D32] mx-auto mb-1" />
+                                <p className="text-xl font-bold text-gray-900">{plan.calories}</p>
+                                <p className="text-xs text-gray-400">kcal/day</p>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+                                <BarChart3 className="w-5 h-5 text-[#1565C0] mx-auto mb-1" />
+                                <p className="text-xl font-bold text-gray-900">{adherence}%</p>
+                                <p className="text-xs text-gray-400">adherence</p>
+                            </div>
+                            <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+                                <Calendar className="w-5 h-5 text-amber-500 mx-auto mb-1" />
+                                <p className="text-xl font-bold text-gray-900">{plan.mealPlan.length}</p>
+                                <p className="text-xs text-gray-400">days</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                            <div className="flex items-center justify-between mb-2">
+                                <p className="text-sm font-bold text-gray-700">Weekly Progress</p>
+                                <p className="text-sm font-bold text-[#2E7D32]">{adherence}%</p>
+                            </div>
+                            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] rounded-full transition-all duration-500" style={{ width: `${adherence}%` }} />
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                            <h3 className="font-bold text-gray-900 mb-4">Daily Meal Tracking</h3>
+                            <div className="space-y-3">
+                                {plan.mealPlan.map((day, dayIdx) => {
+                                    const completed = MEALS.filter((m) => plan.tracking[day.day]?.[m]).length;
+                                    return (
+                                        <div key={day.day} className="border border-gray-100 rounded-xl p-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="font-semibold text-gray-800 text-sm">{day.day}</span>
+                                                <span className="text-xs font-medium text-gray-400">{completed}/{MEALS.length} meals</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                                {MEALS.map((meal) => {
+                                                    const done = plan.tracking[day.day]?.[meal];
+                                                    const MIcon = mealIcons[meal];
+                                                    return (
+                                                        <button key={meal} onClick={() => toggleMeal(dayIdx, meal)} className={`flex items-center gap-2 p-2.5 rounded-lg text-left text-xs font-medium transition-all cursor-pointer ${done ? 'bg-[#2E7D32]/10 text-[#2E7D32] border border-[#2E7D32]/20' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'}`}>
+                                                            {done ? <CheckCircle className="w-4 h-4 flex-shrink-0" /> : <MIcon className="w-4 h-4 flex-shrink-0" />}
+                                                            <span className="capitalize truncate">{meal}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -577,32 +836,43 @@ function ResultsPage({ data, onRestart }) {
    ────────────────────────────────────────────── */
 
 export default function App() {
-    const [screen, setScreen] = useState('landing'); // 'landing' | 'survey' | 'results'
+    const [screen, setScreen] = useState('landing');
+    const [user, setUser] = useState(() => getSession());
     const [userData, setUserData] = useState(null);
 
-    const handleStart = () => {
-        setScreen('survey');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const go = (s) => { setScreen(s); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+    const handleStart = () => go(user ? 'survey' : 'auth');
+
+    const handleAuth = (u) => {
+        setUser(u);
+        go(getUserPlans(u.id).length ? 'dashboard' : 'survey');
     };
 
-    const handleSurveySubmit = (data) => {
-        setUserData(data);
-        setScreen('results');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleSurveySubmit = (data) => { setUserData(data); go('results'); };
+
+    const handleSave = (planData) => {
+        const plans = getUserPlans(user.id);
+        const newPlan = { id: Date.now().toString(36), createdAt: new Date().toISOString(), ...planData, tracking: {} };
+        planData.mealPlan.forEach((day) => { newPlan.tracking[day.day] = {}; });
+        plans.unshift(newPlan);
+        saveUserPlans(user.id, plans);
+        go('dashboard');
     };
 
-    const handleRestart = () => {
-        setUserData(null);
-        setScreen('landing');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    const handleRestart = () => { setUserData(null); go('landing'); };
+    const handleLogout = () => { clearSession(); setUser(null); go('landing'); };
+    const handleNewPlan = () => go('survey');
+    const handleDashboard = () => go('dashboard');
 
     return (
         <>
-            <Navbar />
+            <Navbar user={user} onLogout={handleLogout} onDashboard={handleDashboard} />
             {screen === 'landing' && <LandingPage onStart={handleStart} />}
+            {screen === 'auth' && <AuthScreen onAuth={handleAuth} />}
             {screen === 'survey' && <SurveyForm onSubmit={handleSurveySubmit} />}
-            {screen === 'results' && <ResultsPage data={userData} onRestart={handleRestart} />}
+            {screen === 'results' && <ResultsPage data={userData} onRestart={handleRestart} onSave={user ? handleSave : null} />}
+            {screen === 'dashboard' && user && <DashboardPage user={user} onNewPlan={handleNewPlan} />}
         </>
     );
 }
